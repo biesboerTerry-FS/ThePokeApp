@@ -1,0 +1,123 @@
+import { StyleSheet } from 'react-native';
+
+export default StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#1e3a8a',
+  },
+  content: {
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    gap: 16,
+  },
+  header: {
+    backgroundColor: '#d32f2f',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 6,
+    borderBottomColor: '#333',
+  },
+  headerTitle: {
+    color: '#ffffff',
+    fontSize: 24,
+    fontWeight: '900',
+  },
+  heroCard: {
+    backgroundColor: '#d32f2f',
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#333',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#3c5aa6',
+    marginBottom: 8,
+  },
+  primaryButton: {
+    backgroundColor: '#d32f2f',
+    paddingVertical: 14,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryButton: {
+    backgroundColor: '#2196f3',
+    minHeight: 44,
+    paddingVertical: 11,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontWeight: '900',
+    fontSize: 15,
+  },
+  card: {
+    backgroundColor: '#ffcb05',
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  subtleCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 15,
+    padding: 14,
+    borderWidth: 2,
+    borderColor: '#d32f2f',
+  },
+  input: {
+    borderWidth: 2,
+    borderColor: '#2196f3',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#ffffff',
+    color: '#333',
+    fontSize: 14,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#3c5aa6',
+    marginBottom: 6,
+    marginTop: 4,
+  },
+  mutedText: {
+    color: '#999',
+    fontSize: 13,
+  },
+  badge: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+});

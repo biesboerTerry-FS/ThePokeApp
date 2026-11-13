@@ -1,0 +1,10 @@
+backend/
+ios/
+build/
+thePokedex/
+pokemonCardMatch/
+.expo/
+.idea/
+.env
+.env.*
+!.env.example
