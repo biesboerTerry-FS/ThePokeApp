@@ -4,20 +4,16 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import { defaultState, loadState, saveState } from '../storage/appStorage';
 import { recordResult } from '../game/stats';
-import { recordRemoteGame } from '../api/client';
 
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   const [state, setState] = useState(defaultState);
   const [ready, setReady] = useState(false);
-  const stateRef = useRef(state);
-  stateRef.current = state;
 
   useEffect(() => {
     loadState().then((loaded) => {
@@ -40,25 +36,11 @@ export function AppProvider({ children }) {
     () => ({
       setName: (name) => update({ name }),
       setDefaultDifficulty: (key) => update({ defaultDifficulty: key }),
-      signIn: (account) =>
-        setState((previous) => ({
-          ...previous,
-          account,
-          name: previous.name || account.name,
-        })),
-      signOut: () => update({ account: null }),
-      recordGame: (difficultyKey, outcome, strikes, score) => {
+      recordGame: (difficultyKey, outcome, strikes) => {
         setState((previous) => ({
           ...previous,
           stats: recordResult(previous.stats, difficultyKey, outcome, strikes),
         }));
-
-        const token = stateRef.current.account?.sessionToken;
-        if (token) {
-          recordRemoteGame(token, { difficulty: difficultyKey, outcome, strikes, score }).catch(
-            () => {}
-          );
-        }
       },
       resetStats: () => update({ stats: {} }),
     }),

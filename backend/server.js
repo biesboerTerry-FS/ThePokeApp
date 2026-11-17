@@ -3,8 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const pokemonRouter = require('./routes/pokemon');
-const { router: authRouter } = require('./routes/auth');
-const meRouter = require('./routes/me');
 
 const PORT = process.env.PORT || 8000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/pokedex';
@@ -30,8 +28,6 @@ app.use('/api/v1', (request, response, next) => {
 });
 
 app.use('/api/v1/pokemon', pokemonRouter);
-app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/me', meRouter);
 
 app.use((error, request, response, next) => {
   console.error(error);

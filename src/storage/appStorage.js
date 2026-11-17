@@ -4,7 +4,6 @@ const STORAGE_KEY = 'pokeapp:state:v1';
 
 export const defaultState = {
   name: '',
-  account: null,
   defaultDifficulty: 'medium',
   stats: {},
 };

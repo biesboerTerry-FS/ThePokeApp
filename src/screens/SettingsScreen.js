@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Alert,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SignInButton from '../components/SignInButton';
 import { useApp } from '../context/AppContext';
 import { DIFFICULTIES } from '../game/cardMatch';
 import { winRate } from '../game/stats';
@@ -30,7 +28,6 @@ function initialsOf(name) {
 export default function SettingsScreen() {
   const {
     name,
-    account,
     defaultDifficulty,
     stats,
     setName,
@@ -50,20 +47,12 @@ export default function SettingsScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.card}>
           <View style={styles.profileRow}>
-            {account?.picture ? (
-              <Image accessibilityLabel={`${account.name} profile picture`} source={{ uri: account.picture }} style={styles.avatar} />
-            ) : (
-              <View style={[styles.avatar, styles.avatarFallback]}>
-                <Text style={styles.avatarText}>{initialsOf(name || account?.name)}</Text>
-              </View>
-            )}
+            <View style={[styles.avatar, styles.avatarFallback]}>
+              <Text style={styles.avatarText}>{initialsOf(name)}</Text>
+            </View>
             <View style={styles.profileText}>
-              <Text style={styles.cardTitle}>{name.trim() || account?.name || 'Trainer'}</Text>
-              <Text style={styles.muted}>
-                {account
-                  ? `Signed in with ${account.provider === 'google' ? 'Google' : account.provider}${account.email ? ` · ${account.email}` : ''}`
-                  : 'Not signed in'}
-              </Text>
+              <Text style={styles.cardTitle}>{name.trim() || 'Trainer'}</Text>
+              <Text style={styles.muted}>Local player profile</Text>
             </View>
           </View>
 
@@ -72,15 +61,11 @@ export default function SettingsScreen() {
             style={styles.input}
             value={name}
             onChangeText={setName}
-            placeholder={account?.name || 'Enter your name'}
+            placeholder="Enter your name"
             placeholderTextColor="#64748b"
             maxLength={24}
             autoCorrect={false}
           />
-
-          <View style={styles.accountRow}>
-            <SignInButton />
-          </View>
         </View>
 
         <View style={styles.card}>
@@ -96,7 +81,7 @@ export default function SettingsScreen() {
                   style={[styles.chip, active && styles.chipActive]}
                 >
                   <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                    {item.label} · {item.pairs}
+                    {item.label} · {item.pairs} · {item.maxStrikes} chances
                   </Text>
                 </Pressable>
               );
@@ -214,9 +199,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     color: '#333',
     fontSize: 16,
-  },
-  accountRow: {
-    marginTop: 8,
   },
   chipRow: {
     flexDirection: 'row',

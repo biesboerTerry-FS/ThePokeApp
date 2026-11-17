@@ -2,7 +2,6 @@
   "expo": {
     "name": "thePokeApp",
     "slug": "thepokeapp",
-    "scheme": "thepokeapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -30,8 +29,6 @@
     "plugins": [
       "expo-asset",
       "expo-web-browser",
-      "expo-secure-store",
-      "@clerk/expo",
       "expo-font"
     ]
   }

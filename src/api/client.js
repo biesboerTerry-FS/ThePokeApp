@@ -164,46 +164,4 @@ export function deletePokemon(id) {
   return requestJson(`/pokemon/${id}`, { method: 'DELETE' });
 }
 
-// Account and game-result calls. These do not fall back to local data: a
-// result is only stored remotely if the server accepted it.
-async function accountRequest(path, { method = 'GET', body, token } = {}) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-  try {
-    const response = await fetch(`${getApiBaseUrl()}${path}`, {
-      method,
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.message || `Request failed with status ${response.status}`);
-    }
-
-    return response.status === 204 ? null : response.json();
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-export function signInToBackend(accessToken) {
-  return accountRequest('/auth/google', { method: 'POST', body: { accessToken } });
-}
-
-export function signInWithClerkToBackend(sessionToken) {
-  return accountRequest('/auth/clerk', { method: 'POST', body: { sessionToken } });
-}
-
-export function updateRemoteProfile(token, patch) {
-  return accountRequest('/me', { method: 'PATCH', body: patch, token });
-}
-
-export function recordRemoteGame(token, result) {
-  return accountRequest('/me/games', { method: 'POST', body: result, token });
-}

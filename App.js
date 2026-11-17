@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ClerkProvider } from '@clerk/expo';
 import { useFonts } from 'expo-font';
 import HomeScreen from './src/screens/HomeScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
@@ -9,11 +8,7 @@ import PokemonDetailScreen from './src/screens/PokemonDetailScreen';
 import AddPokemonScreen from './src/screens/AddPokemonScreen';
 import CardMatchScreen from './src/screens/CardMatchScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import SignInScreen from './src/screens/SignInScreen';
 import { AppProvider } from './src/context/AppContext';
-import { isClerkConfigured, publishableKey } from './src/auth/clerk';
-import { tokenCache } from './src/auth/tokenCache';
-import ClerkSync from './src/auth/ClerkSync';
 import PokemonTitle from './src/components/PokemonTitle';
 
 const Stack = createNativeStackNavigator();
@@ -66,11 +61,6 @@ function AppNavigator() {
           component={SettingsScreen}
           options={{ title: 'Settings' }}
         />
-        <Stack.Screen
-          name="SignIn"
-          component={SignInScreen}
-          options={{ title: 'Sign in' }}
-        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -85,20 +75,9 @@ export default function App() {
     return null;
   }
 
-  const content = (
+  return (
     <AppProvider>
-      {isClerkConfigured() ? <ClerkSync /> : null}
       <AppNavigator />
     </AppProvider>
   );
-
-  if (isClerkConfigured()) {
-    return (
-      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        {content}
-      </ClerkProvider>
-    );
-  }
-
-  return content;
 }

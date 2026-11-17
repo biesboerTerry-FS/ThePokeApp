@@ -10,32 +10,29 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SignInButton from '../components/SignInButton';
 import PokemonTitle from '../components/PokemonTitle';
 import { useApp } from '../context/AppContext';
 import { MAX_CONTENT_WIDTH, actionButton, isWide } from '../styles/layout';
 
 export default function HomeScreen({ navigation }) {
-  const { name, account, setName } = useApp();
+  const { name, setName } = useApp();
   const { width } = useWindowDimensions();
   const wide = isWide(width);
-  const displayName = name.trim() || account?.name || 'Trainer';
+  const displayName = name.trim() || 'Trainer';
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.header}>
         <PokemonTitle style={styles.headerTitle}>Pokédex Master</PokemonTitle>
-        {account ? (
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Settings"
-            style={styles.settingsButton}
-            onPress={() => navigation.navigate('Settings')}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          >
-            <Text style={styles.settingsText}>Settings</Text>
-          </TouchableOpacity>
-        ) : null}
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Settings"
+          style={styles.settingsButton}
+          onPress={() => navigation.navigate('Settings')}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Text style={styles.settingsText}>Settings</Text>
+        </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.content}>
         <Image
@@ -75,9 +72,6 @@ export default function HomeScreen({ navigation }) {
             >
               <Text style={styles.actionText}>Enter Pokédex</Text>
             </TouchableOpacity>
-            <View style={[styles.actionSlot, wide && styles.actionSlotWide]}>
-              <SignInButton style={styles.action} />
-            </View>
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel="Play Card Match"
