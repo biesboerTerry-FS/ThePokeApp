@@ -1,7 +1,7 @@
 export const DIFFICULTIES = [
-  { key: 'easy', label: 'Easy', pairs: 6, maxStrikes: 8 },
+  { key: 'easy', label: 'Easy', pairs: 6, maxStrikes: 6 },
   { key: 'medium', label: 'Medium', pairs: 9, maxStrikes: 6 },
-  { key: 'hard', label: 'Hard', pairs: 12, maxStrikes: 4 },
+  { key: 'hard', label: 'Hard', pairs: 12, maxStrikes: 6 },
 ];
 
 export function getDifficulty(key) {
