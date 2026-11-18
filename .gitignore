@@ -43,3 +43,5 @@ yarn-error.log*
 # unrelated sibling projects in workspace
 pokemonCardMatch/
 thePokedex/
+.vercel
+.env*
