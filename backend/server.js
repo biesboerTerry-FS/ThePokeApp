@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const pokemonRouter = require('./routes/pokemon');
+const { demoLogin, requireAuth } = require('./routes/auth');
 
 const PORT = process.env.PORT || 8000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/pokedex';
@@ -19,15 +20,17 @@ app.get('/api/v1/health', (request, response) => {
   });
 });
 
+app.post('/api/v1/auth/demo', demoLogin);
+
 // Routes below need the database. Answer clearly while it is unreachable.
 app.use('/api/v1', (request, response, next) => {
-  if (request.path === '/health' || mongoose.connection.readyState === 1) {
+  if (request.path === '/health' || request.path === '/auth/demo' || mongoose.connection.readyState === 1) {
     return next();
   }
   response.status(503).json({ message: 'Database not connected yet.' });
 });
 
-app.use('/api/v1/pokemon', pokemonRouter);
+app.use('/api/v1/pokemon', requireAuth, pokemonRouter);
 
 app.use((error, request, response, next) => {
   console.error(error);

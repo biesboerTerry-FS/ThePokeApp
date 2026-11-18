@@ -23,7 +23,7 @@ export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.header}>
-        <PokemonTitle style={styles.headerTitle}>Pokédex Master</PokemonTitle>
+        <PokemonTitle style={styles.headerTitle}>thePokêApp</PokemonTitle>
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Settings"

@@ -8,10 +8,26 @@ import PokemonDetailScreen from './src/screens/PokemonDetailScreen';
 import AddPokemonScreen from './src/screens/AddPokemonScreen';
 import CardMatchScreen from './src/screens/CardMatchScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import LoginScreen from './src/screens/LoginScreen';
 import { AppProvider } from './src/context/AppContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 import PokemonTitle from './src/components/PokemonTitle';
 
 const Stack = createNativeStackNavigator();
+
+function AuthGate() {
+  const { ready, isAuthenticated } = useAuth();
+
+  if (!ready) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
+
+  return <AppNavigator />;
+}
 
 function AppNavigator() {
   return (
@@ -76,8 +92,10 @@ export default function App() {
   }
 
   return (
-    <AppProvider>
-      <AppNavigator />
-    </AppProvider>
+    <AuthProvider>
+      <AppProvider>
+        <AuthGate />
+      </AppProvider>
+    </AuthProvider>
   );
 }

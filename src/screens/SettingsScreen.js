@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApp } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { DIFFICULTIES } from '../game/cardMatch';
 import { winRate } from '../game/stats';
 import { MAX_CONTENT_WIDTH } from '../styles/layout';
@@ -34,6 +35,14 @@ export default function SettingsScreen() {
     setDefaultDifficulty,
     resetStats,
   } = useApp();
+  const { user, logout } = useAuth();
+
+  function handleLogout() {
+    Alert.alert('Sign out', 'Return to the login screen?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: logout },
+    ]);
+  }
 
   function handleResetStats() {
     Alert.alert('Reset stats', 'Clear all Card Match results on this device?', [
@@ -66,6 +75,21 @@ export default function SettingsScreen() {
             maxLength={24}
             autoCorrect={false}
           />
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Account</Text>
+          <Text style={styles.muted}>
+            {user?.email ? `Signed in as ${user.email}` : 'Demo session'}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sign out"
+            onPress={handleLogout}
+            style={[styles.dangerButton, { marginTop: 10 }]}
+          >
+            <Text style={styles.dangerText}>Sign out</Text>
+          </Pressable>
         </View>
 
         <View style={styles.card}>

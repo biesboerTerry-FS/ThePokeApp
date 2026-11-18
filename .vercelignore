@@ -1,10 +1,14 @@
 backend/
 ios/
+android/
 build/
+dist/
+web-build/
 thePokedex/
 pokemonCardMatch/
 .expo/
 .idea/
+.vscode/
 .env
 .env.*
 !.env.example
