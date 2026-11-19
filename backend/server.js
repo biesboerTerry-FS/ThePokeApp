@@ -44,4 +44,8 @@ mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 }).catch((error) 
   console.error('Could not connect to MongoDB:', error.message);
 });
 
-app.listen(PORT, () => console.log(`Pokédex API listening on http://localhost:${PORT}/api/v1`));
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`Pokédex API listening on http://localhost:${PORT}/api/v1`));
+}
+
+module.exports = app;

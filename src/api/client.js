@@ -64,6 +64,11 @@ async function requestJson(path, options = {}) {
     });
     clearTimeout(timeoutId);
 
+    if (response.status === 503) {
+      // Backend is deployed but its database is unavailable — use local seed data.
+      return handleLocalFallback(path, options);
+    }
+
     if (!response.ok) {
       const text = await response.text();
       throw new Error(text || `Request failed with status ${response.status}`);
