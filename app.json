@@ -24,7 +24,7 @@
       "package": "com.anonymous.thepokeapp"
     },
     "web": {
-      "favicon": "./assets/icon.png"
+      "favicon": "./assets/pokeball.png"
     },
     "plugins": [
       "expo-asset",
