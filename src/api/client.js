@@ -1,6 +1,5 @@
 import Constants from 'expo-constants';
 import seedPokemon from '../data/pokemonSeed.json';
-import { getAuthToken } from './token';
 
 function normalizeBaseUrl(value) {
   return String(value || '').replace(/\/+$/, '');
@@ -46,10 +45,8 @@ let localPokemonPool = seedPokemon.map((p) => ({ ...p }));
 async function requestJson(path, options = {}) {
   const API_BASE_URL = getApiBaseUrl();
   const { headers: optionHeaders, ...restOptions } = options;
-  const authToken = getAuthToken();
   const headers = {
     'Content-Type': 'application/json',
-    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     ...(optionHeaders || {}),
   };
 
