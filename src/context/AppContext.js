@@ -42,6 +42,41 @@ export function AppProvider({ children }) {
           ...previous,
           userPhotos: [entry, ...(previous.userPhotos || [])],
         })),
+      toggleCaught: (pokemonId) => {
+        const key = String(pokemonId);
+        setState((previous) => {
+          const caught = previous.caught || [];
+          return {
+            ...previous,
+            caught: caught.includes(key)
+              ? caught.filter((item) => item !== key)
+              : [key, ...caught],
+          };
+        });
+      },
+      toggleFavorite: (pokemonId) => {
+        const key = String(pokemonId);
+        setState((previous) => {
+          const favorites = previous.favorites || [];
+          return {
+            ...previous,
+            favorites: favorites.includes(key)
+              ? favorites.filter((item) => item !== key)
+              : [key, ...favorites],
+          };
+        });
+      },
+      setPokemonEdit: (pokemonId, patch) =>
+        setState((previous) => ({
+          ...previous,
+          edits: {
+            ...(previous.edits || {}),
+            [String(pokemonId)]: {
+              ...((previous.edits || {})[String(pokemonId)] || {}),
+              ...patch,
+            },
+          },
+        })),
       recordGame: (difficultyKey, outcome, strikes) => {
         setState((previous) => ({
           ...previous,

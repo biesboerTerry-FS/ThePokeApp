@@ -13,8 +13,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  createPokemon,
-  deletePokemon,
   getPokemonById,
   getPokemonList,
   updatePokemon,
@@ -32,7 +30,15 @@ const SLIDE_WIDTH = 120;
 export default function PokemonDetailScreen({ route, navigation }) {
   const { width } = useWindowDimensions();
   const id = route.params?.id;
-  const { userPhotos, userId, name, addUserPhoto } = useApp();
+  const {
+    userPhotos,
+    caught,
+    toggleCaught,
+    favorites,
+    toggleFavorite,
+    setPokemonEdit,
+    edits,
+  } = useApp();
 
   const [loading, setLoading] = useState(false);
   const [pokemon, setPokemon] = useState(null);
@@ -83,7 +89,11 @@ export default function PokemonDetailScreen({ route, navigation }) {
       const localEntry = (userPhotos || []).find(
         (item) => String(item._id ?? item.id) === String(id)
       );
-      const data = localEntry || (await getPokemonById(id));
+      const remote = localEntry || (await getPokemonById(id));
+      // Layer local edits (custom image/name/etc.) over the roster entry so
+      // the Pokédex stays whole while still showing the trainer's changes.
+      const override = (edits || {})[String(id)];
+      const data = override ? { ...remote, ...override } : remote;
       setPokemon(data);
       setEditValues({
         name: data.name,
@@ -97,7 +107,7 @@ export default function PokemonDetailScreen({ route, navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [id, navigation, userPhotos]);
+  }, [id, navigation, userPhotos, edits]);
 
   useEffect(() => {
     loadPokemon();
@@ -113,34 +123,19 @@ export default function PokemonDetailScreen({ route, navigation }) {
           .map((type) => type.trim())
           .filter(Boolean),
       };
-      const data = await updatePokemon(id, updatedData);
+      // Persist locally so edits survive even while the backend is degraded.
+      setPokemonEdit(id, updatedData);
+      let data = { ...pokemon, ...updatedData };
+      try {
+        data = await updatePokemon(id, updatedData);
+      } catch (error) {
+        // Local override is already saved.
+      }
       setPokemon(data);
-      Alert.alert('Success', 'Pokémon updated successfully!');
+      setNotice('Changes saved.');
     } catch (error) {
       Alert.alert('Error', 'Failed to update Pokémon.');
     }
-  };
-
-  const handleDelete = () => {
-    Alert.alert(
-      'Release Pokémon',
-      'Are you sure you want to release this Pokémon?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Release',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deletePokemon(id);
-              navigation.goBack();
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete Pokémon.');
-            }
-          },
-        },
-      ]
-    );
   };
 
   const scrollToIndex = useCallback(
@@ -180,44 +175,27 @@ export default function PokemonDetailScreen({ route, navigation }) {
         return;
       }
 
-      const trainer = String(name || '').trim();
-      const entry = {
-        _id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        name: trainer ? `${trainer}'s Photo` : 'My Photo',
-        types: ['user'],
-        level: 1,
-        sprite: uri,
-        userId: userId || undefined,
-        storage: result.source,
-      };
+      // Keep the Pokédex whole: the trainer's own image becomes this Pokémon's
+      // sprite rather than a new entry. Persist locally so it survives reloads,
+      // and best-effort write to the backend when it is available.
+      setPokemonEdit(id, { sprite: uri });
+      setPokemon((previous) => (previous ? { ...previous, sprite: uri } : previous));
+      setEditValues((previous) => ({ ...previous, sprite: uri }));
 
-      // Always keep a local copy so the sprite appears immediately and survives
-      // reloads while the backend database is being configured.
-      addUserPhoto(entry);
-
-      // Best-effort MongoDB write through the existing API. requestJson falls
-      // back to local state when the backend is degraded (503/unreachable).
       try {
-        await createPokemon({
-          name: entry.name,
-          types: entry.types,
-          level: entry.level,
-          sprite: entry.sprite,
-          userId: entry.userId,
-        });
+        await updatePokemon(id, { sprite: uri });
       } catch (error) {
-        // The local entry is already saved; nothing else to do.
+        // Local override already applied.
       }
 
       setNotice(
         result.source === 'cloudinary'
-          ? 'Photo added to your Pokédex (cloud).'
-          : 'Photo added to your Pokédex (saved on this device).'
+          ? 'Image saved to this Pokémon (cloud).'
+          : 'Image saved to this Pokémon (on this device).'
       );
-      scrollToIndex(0);
       loadCollection();
     } catch (error) {
-      setNotice('Could not add your photo. Please try again.');
+      setNotice('Could not add your image. Please try again.');
     }
   };
 
@@ -232,6 +210,8 @@ export default function PokemonDetailScreen({ route, navigation }) {
   }
 
   const activeId = String(pokemon._id ?? pokemon.id ?? id);
+  const isCaught = (caught || []).map(String).includes(activeId);
+  const isFavorite = (favorites || []).map(String).includes(activeId);
 
   return (
     <SafeAreaView style={common.screen} edges={['left', 'right', 'bottom']}>
@@ -348,6 +328,35 @@ export default function PokemonDetailScreen({ route, navigation }) {
             resizeMode: 'contain',
           }}
         />
+        <View style={[common.row, styles.toggleRow]}>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={isCaught ? 'Mark as uncaught' : 'Mark as caught'}
+            accessibilityState={{ selected: isCaught }}
+            onPress={() => toggleCaught(id)}
+            style={[styles.toggleButton, isCaught && styles.caughtActive]}
+          >
+            <Text style={styles.toggleIcon}>{isCaught ? '✓' : '○'}</Text>
+            <Text style={[styles.toggleLabel, isCaught && styles.toggleLabelActive]}>
+              {isCaught ? 'Caught' : 'Catch'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            accessibilityState={{ selected: isFavorite }}
+            onPress={() => toggleFavorite(id)}
+            style={[styles.toggleButton, isFavorite && styles.favoriteActive]}
+          >
+            <Text style={[styles.toggleIcon, isFavorite && styles.heartIcon]}>
+              {isFavorite ? '♥' : '♡'}
+            </Text>
+            <Text style={[styles.toggleLabel, isFavorite && styles.toggleLabelActive]}>
+              {isFavorite ? 'Favorite' : 'Favorite'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={[common.card, styles.formCard]}>
           <Text style={common.sectionTitle}>Update Pokémon</Text>
 
@@ -416,15 +425,6 @@ export default function PokemonDetailScreen({ route, navigation }) {
           />
 
           <View style={[common.row, { marginTop: 16 }]}>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Release Pokémon"
-              style={[
-                common.secondaryButton,
-                { flex: 1, backgroundColor: '#991b1b' },
-              ]}
-              onPress={handleDelete}
-            >
-              <Text style={common.buttonText}>Release</Text>
-            </TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Save changes"
               style={[common.primaryButton, { flex: 1 }]}
               onPress={handleUpdate}
@@ -444,6 +444,49 @@ const styles = StyleSheet.create({
     maxWidth: MAX_CONTENT_WIDTH,
     alignSelf: 'center',
     marginTop: 4,
+  },
+  toggleRow: {
+    width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
+    alignSelf: 'center',
+    gap: 10,
+    marginTop: 4,
+  },
+  toggleButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: 44,
+    borderRadius: 999,
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderColor: '#1e3a8a',
+  },
+  caughtActive: {
+    backgroundColor: '#d32f2f',
+    borderColor: '#d32f2f',
+  },
+  favoriteActive: {
+    backgroundColor: '#d32f2f',
+    borderColor: '#d32f2f',
+  },
+  toggleIcon: {
+    color: '#1e3a8a',
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  heartIcon: {
+    color: '#ffffff',
+  },
+  toggleLabel: {
+    color: '#1e3a8a',
+    fontWeight: '900',
+    fontSize: 14,
+  },
+  toggleLabelActive: {
+    color: '#ffffff',
   },
   carouselCard: {
     width: '100%',

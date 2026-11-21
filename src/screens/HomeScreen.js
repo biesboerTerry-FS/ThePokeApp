@@ -32,7 +32,7 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigation.navigate('Settings')}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Text style={styles.settingsText}>Settings</Text>
+          <Text style={styles.settingsGear}>⚙</Text>
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.content}>
@@ -114,17 +114,17 @@ const styles = StyleSheet.create({
   },
   settingsButton: {
     position: 'absolute',
-    right: 20,
-    bottom: 18,
-    minHeight: 44,
+    right: 18,
+    bottom: 14,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    backgroundColor: '#ffffff',
   },
-  settingsText: {
-    color: '#c62828',
+  settingsGear: {
+    color: '#ffffff',
+    fontSize: 30,
+    lineHeight: 32,
     fontWeight: '800',
   },
   content: {

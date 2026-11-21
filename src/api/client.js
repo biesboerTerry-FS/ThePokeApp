@@ -132,19 +132,22 @@ async function requestJson(path, options = {}) {
 
 function handleLocalFallback(path, options) {
   const method = (options.method || 'GET').toUpperCase();
+  // Strip any query string (e.g. /pokemon?userId=...) so the local fallback
+  // matches the same routes as when the backend is online.
+  const pathname = String(path).split('?')[0];
 
-  if (path === '/pokemon' && method === 'GET') {
+  if (pathname === '/pokemon' && method === 'GET') {
     return [...localPokemonPool];
   }
 
-  if (path.startsWith('/pokemon/') && method === 'GET') {
-    const id = path.replace('/pokemon/', '');
+  if (pathname.startsWith('/pokemon/') && method === 'GET') {
+    const id = pathname.replace('/pokemon/', '');
     const found = localPokemonPool.find((p) => String(p._id) === String(id));
     if (found) return { ...found };
     throw new Error('Pokémon not found');
   }
 
-  if (path === '/pokemon' && method === 'POST') {
+  if (pathname === '/pokemon' && method === 'POST') {
     const payload = JSON.parse(options.body || '{}');
     const newEntry = {
       _id: String(Date.now()),
@@ -157,8 +160,8 @@ function handleLocalFallback(path, options) {
     return { ...newEntry };
   }
 
-  if (path.startsWith('/pokemon/') && (method === 'PATCH' || method === 'PUT')) {
-    const id = path.replace('/pokemon/', '');
+  if (pathname.startsWith('/pokemon/') && (method === 'PATCH' || method === 'PUT')) {
+    const id = pathname.replace('/pokemon/', '');
     const payload = JSON.parse(options.body || '{}');
     localPokemonPool = localPokemonPool.map((item) => {
       if (String(item._id) === String(id)) {
@@ -173,8 +176,8 @@ function handleLocalFallback(path, options) {
     return { ...updated };
   }
 
-  if (path.startsWith('/pokemon/') && method === 'DELETE') {
-    const id = path.replace('/pokemon/', '');
+  if (pathname.startsWith('/pokemon/') && method === 'DELETE') {
+    const id = pathname.replace('/pokemon/', '');
     localPokemonPool = localPokemonPool.filter((item) => String(item._id) !== String(id));
     return null;
   }

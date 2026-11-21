@@ -24,10 +24,12 @@ import { isWide } from '../styles/layout';
 const ROWS_PER_PAGE = 15;
 
 export default function DashboardScreen({ navigation }) {
-  const { userPhotos } = useApp();
+  const { userPhotos, caught, favorites, edits } = useApp();
   const [pokemon, setPokemon] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [caughtOnly, setCaughtOnly] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const searchRef = useRef(null);
@@ -64,17 +66,38 @@ export default function DashboardScreen({ navigation }) {
 
   // Locally added photos/entries are merged into the cloud-backed list so they
   // appear in the Pokédex immediately, even while the backend is unreachable.
-  const allPokemon = useMemo(
-    () => mergeCustomPokemon(pokemon, userPhotos),
-    [pokemon, userPhotos]
+  const allPokemon = useMemo(() => {
+    const merged = mergeCustomPokemon(pokemon, userPhotos);
+    // Keep the roster whole but layer any local edits (custom image/name/etc.)
+    // on top so a trainer's changes show up in the Pokédex.
+    return merged.map((item) => {
+      const key = String(item._id ?? item.id);
+      const override = (edits || {})[key];
+      return override ? { ...item, ...override } : item;
+    });
+  }, [pokemon, userPhotos, edits]);
+
+  const caughtIds = useMemo(
+    () => new Set((caught || []).map((value) => String(value))),
+    [caught]
+  );
+
+  const favoriteIds = useMemo(
+    () => new Set((favorites || []).map((value) => String(value))),
+    [favorites]
   );
 
   const filteredPokemon = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return allPokemon.filter((item) =>
-      String(item.name || '').toLowerCase().includes(term)
-    );
-  }, [allPokemon, searchTerm]);
+    return allPokemon.filter((item) => {
+      const matchesTerm = String(item.name || '').toLowerCase().includes(term);
+      if (!matchesTerm) return false;
+      const key = String(item._id ?? item.id);
+      if (caughtOnly && !caughtIds.has(key)) return false;
+      if (favoritesOnly && !favoriteIds.has(key)) return false;
+      return true;
+    });
+  }, [allPokemon, searchTerm, caughtOnly, favoritesOnly, caughtIds, favoriteIds]);
 
   const totalPages = Math.max(
     1,
@@ -204,12 +227,25 @@ export default function DashboardScreen({ navigation }) {
             <View style={styles.magnifierHandle} />
           </TouchableOpacity>
         )}
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a Pokémon"
-          onPress={() => navigation.navigate('AddPokemon')}
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={caughtOnly ? 'Show all Pokémon' : 'Show caught Pokémon'}
+          accessibilityState={{ selected: caughtOnly }}
+          onPress={() => { setCaughtOnly((value) => !value); setCurrentPage(1); }}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          style={styles.addButton}
+          style={[styles.caughtFilterButton, caughtOnly && styles.caughtFilterActive]}
         >
-          <Text style={styles.addText}>Add</Text>
+          <Text style={[styles.caughtFilterText, caughtOnly && styles.caughtFilterTextActive]}>
+            {caughtOnly ? 'Caught ✓' : 'Caught'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={favoritesOnly ? 'Show all Pokémon' : 'Show favorites'}
+          accessibilityState={{ selected: favoritesOnly }}
+          onPress={() => { setFavoritesOnly((value) => !value); setCurrentPage(1); }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          style={[styles.favoriteFilterButton, favoritesOnly && styles.favoriteFilterActive]}
+        >
+          <Text style={[styles.favoriteFilterText, favoritesOnly && styles.favoriteFilterTextActive]}>
+            {favoritesOnly ? '♥' : '♡'}
+          </Text>
         </TouchableOpacity>
       </View>
       <FlatList
@@ -252,6 +288,16 @@ export default function DashboardScreen({ navigation }) {
               }}
               style={styles.sprite}
             />
+            {favoriteIds.has(String(item._id ?? item.id)) ? (
+              <View style={styles.favoriteBadge} accessibilityLabel="Favorite">
+                <Text style={styles.favoriteBadgeText}>♥</Text>
+              </View>
+            ) : null}
+            {caughtIds.has(String(item._id ?? item.id)) ? (
+              <View style={styles.caughtBadge} accessibilityLabel="Caught">
+                <Text style={styles.caughtBadgeText}>✓</Text>
+              </View>
+            ) : null}
             <Text style={styles.nameText} numberOfLines={1}>
               {item.name}
             </Text>
@@ -374,19 +420,88 @@ const styles = StyleSheet.create({
     left: 26,
     transform: [{ rotate: '45deg' }],
   },
-  addButton: {
+  caughtFilterButton: {
     marginLeft: 'auto',
     backgroundColor: '#ffffff',
     borderRadius: 999,
     paddingVertical: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
   },
-  addText: {
+  caughtFilterActive: {
+    backgroundColor: '#1e3a8a',
+    borderColor: '#ffffff',
+  },
+  caughtFilterText: {
     color: '#d32f2f',
     fontSize: 15,
     fontWeight: '900',
+  },
+  caughtFilterTextActive: {
+    color: '#ffffff',
+  },
+  favoriteFilterButton: {
+    backgroundColor: '#ffffff',
+    borderRadius: 999,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  favoriteFilterActive: {
+    backgroundColor: '#d32f2f',
+    borderColor: '#d32f2f',
+  },
+  favoriteFilterText: {
+    color: '#d32f2f',
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  favoriteFilterTextActive: {
+    color: '#ffffff',
+  },
+  favoriteBadge: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#d32f2f',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  favoriteBadgeText: {
+    color: '#ffffff',
+    fontWeight: '900',
+    fontSize: 14,
+    lineHeight: 16,
+  },
+  caughtBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#d32f2f',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  caughtBadgeText: {
+    color: '#ffffff',
+    fontWeight: '900',
+    fontSize: 15,
+    lineHeight: 16,
   },
   screen: {
     flex: 1,
@@ -402,6 +517,7 @@ const styles = StyleSheet.create({
     ...common.card,
     flex: 1,
     padding: 10,
+    position: 'relative',
   },
   sprite: {
     width: '100%',

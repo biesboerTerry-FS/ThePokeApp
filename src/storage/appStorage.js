@@ -12,6 +12,13 @@ export const defaultState = {
   // copy keeps the demo usable (and the carousel populated) while the cloud
   // database is being configured.
   userPhotos: [],
+  // Pokemon ids the trainer has marked as caught (Pokémon GO style).
+  caught: [],
+  // Pokemon ids the trainer has favorited (heart).
+  favorites: [],
+  // Per-Pokemon local overrides (name/level/types/sprite) so the roster stays
+  // whole while still allowing a trainer to add their own image and edit.
+  edits: {},
   // Stable identifier used to key cloud entries by trainer. The backend's
   // Pokemon model has no owner field yet, so today this is sent with create
   // calls and stored on local entries; see CLOUD_STORAGE_SETUP.md.
