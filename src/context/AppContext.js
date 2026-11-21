@@ -37,6 +37,7 @@ export function AppProvider({ children }) {
       setName: (name) => update({ name }),
       setAvatar: (uri) => update({ avatar: uri || '' }),
       setDefaultDifficulty: (key) => update({ defaultDifficulty: key }),
+      setDarkMode: (value) => update({ darkMode: Boolean(value) }),
       addUserPhoto: (entry) =>
         setState((previous) => ({
           ...previous,

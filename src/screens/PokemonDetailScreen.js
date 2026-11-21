@@ -15,6 +15,7 @@ import { getPokemonById, getPokemonList } from '../api/client';
 import { useApp } from '../context/AppContext';
 import common from '../styles/common';
 import { MAX_CONTENT_WIDTH } from '../styles/layout';
+import { DARK_BACKGROUND } from '../theme/palette';
 import { mergeCustomPokemon } from '../utils/pokemon';
 import { getTypeStyle } from '../utils/typeStyles';
 
@@ -23,7 +24,8 @@ const SLIDE_WIDTH = 120;
 export default function PokemonDetailScreen({ route, navigation }) {
   const { width } = useWindowDimensions();
   const id = route.params?.id;
-  const { userPhotos, caught, toggleCaught, favorites, toggleFavorite } = useApp();
+  const { userPhotos, caught, toggleCaught, favorites, toggleFavorite, darkMode } = useApp();
+  const darkScreen = darkMode ? { backgroundColor: DARK_BACKGROUND } : null;
 
   const [loading, setLoading] = useState(false);
   const [pokemon, setPokemon] = useState(null);
@@ -105,7 +107,7 @@ export default function PokemonDetailScreen({ route, navigation }) {
 
   if (!pokemon) {
     return (
-      <SafeAreaView style={common.screen}>
+      <SafeAreaView style={[common.screen, darkScreen]}>
         <View style={[common.content, { flex: 1, justifyContent: 'center' }]}>
           <ActivityIndicator size="large" color="#dc2626" />
         </View>
@@ -119,7 +121,7 @@ export default function PokemonDetailScreen({ route, navigation }) {
   const spriteSize = Math.min(width - 24, 620);
 
   return (
-    <SafeAreaView style={common.screen} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={[common.screen, darkScreen]} edges={['left', 'right', 'bottom']}>
       <ScrollView
         contentInsetAdjustmentBehavior="never"
         automaticallyAdjustContentInsets={false}

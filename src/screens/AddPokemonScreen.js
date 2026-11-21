@@ -13,6 +13,7 @@ import { createPokemon } from '../api/client';
 import { useApp } from '../context/AppContext';
 import common from '../styles/common';
 import { MAX_CONTENT_WIDTH } from '../styles/layout';
+import { DARK_BACKGROUND } from '../theme/palette';
 
 const styles = StyleSheet.create({
   formCard: {
@@ -31,7 +32,8 @@ const emptyPokemon = {
 };
 
 export default function AddPokemonScreen({ navigation }) {
-  const { userId } = useApp();
+  const { userId, darkMode } = useApp();
+  const darkScreen = darkMode ? { backgroundColor: DARK_BACKGROUND } : null;
   const [newPokemon, setNewPokemon] = useState(emptyPokemon);
 
   const handleCreate = async () => {
@@ -69,7 +71,7 @@ export default function AddPokemonScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={common.screen} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={[common.screen, darkScreen]} edges={['left', 'right', 'bottom']}>
       <ScrollView
         contentInsetAdjustmentBehavior="never"
         automaticallyAdjustContentInsets={false}

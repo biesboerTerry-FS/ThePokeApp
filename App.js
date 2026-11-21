@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useFonts } from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -9,21 +9,24 @@ import PokemonDetailScreen from './src/screens/PokemonDetailScreen';
 import AddPokemonScreen from './src/screens/AddPokemonScreen';
 import CardMatchScreen from './src/screens/CardMatchScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-import { AppProvider } from './src/context/AppContext';
+import { AppProvider, useApp } from './src/context/AppContext';
 import PokemonTitle from './src/components/PokemonTitle';
+import { screenBackground } from './src/theme/palette';
 
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
+  const { darkMode } = useApp();
+  const dark = Boolean(darkMode);
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={dark ? DarkTheme : DefaultTheme}>
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{
           headerStyle: { backgroundColor: '#d32f2f' },
           headerTintColor: '#fff',
           headerTitleStyle: { fontWeight: '800', color: '#fff' },
-          contentStyle: { backgroundColor: '#1e3a8a' },
+          contentStyle: { backgroundColor: screenBackground(dark) },
         }}
       >
         <Stack.Screen

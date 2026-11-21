@@ -15,12 +15,14 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import PokemonTitle from '../components/PokemonTitle';
+import AppFooterNav from '../components/AppFooterNav';
 import { getPokemonList } from '../api/client';
 import { useApp } from '../context/AppContext';
 import { mergeCustomPokemon } from '../utils/pokemon';
 import { getTypeStyle } from '../utils/typeStyles';
 import common from '../styles/common';
 import { isWide } from '../styles/layout';
+import { DARK_BACKGROUND } from '../theme/palette';
 
 const ROWS_PER_PAGE = 15;
 
@@ -46,7 +48,8 @@ const TYPE_COLORS = {
 };
 
 export default function DashboardScreen({ navigation }) {
-  const { userPhotos, caught, favorites, edits } = useApp();
+  const { userPhotos, caught, favorites, edits, darkMode } = useApp();
+  const dark = Boolean(darkMode);
   const [pokemon, setPokemon] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -217,7 +220,7 @@ export default function DashboardScreen({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.screen} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.screen, dark && styles.darkBackground]} edges={['left', 'right', 'bottom']}>
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Go back"
           onPress={() => navigation.goBack()}
@@ -412,6 +415,7 @@ export default function DashboardScreen({ navigation }) {
           {renderPaginationControls()}
         </View>
       )}
+      <AppFooterNav navigation={navigation} dark={dark} />
     </SafeAreaView>
   );
 }
@@ -616,6 +620,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#1e3a8a',
+  },
+  darkBackground: {
+    backgroundColor: DARK_BACKGROUND,
   },
   list: {
     width: '100%',

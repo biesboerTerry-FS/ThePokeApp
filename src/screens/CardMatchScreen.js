@@ -16,10 +16,12 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import PokemonTitle from '../components/PokemonTitle';
+import AppFooterNav from '../components/AppFooterNav';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getPokemonList } from '../api/client';
 import { useApp } from '../context/AppContext';
+import { DARK_BACKGROUND } from '../theme/palette';
 import { getBoardLayout } from '../game/boardLayout';
 import {
   DIFFICULTIES,
@@ -103,8 +105,9 @@ function FlipCard({ isFaceUp, sprite, name, width, height, onPress, duration }) 
   );
 }
 
-export default function CardMatchScreen() {
-  const { defaultDifficulty, recordGame } = useApp();
+export default function CardMatchScreen({ navigation }) {
+  const { defaultDifficulty, recordGame, darkMode } = useApp();
+  const dark = Boolean(darkMode);
   const [difficultyKey, setDifficultyKey] = useState(null);
   const difficulty = getDifficulty(difficultyKey ?? defaultDifficulty);
   const [pokemonPool, setPokemonPool] = useState([]);
@@ -222,7 +225,7 @@ export default function CardMatchScreen() {
         : 'Each pair is a score; each miss is a strike.';
 
   return (
-    <SafeAreaView style={styles.screen} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.screen, dark && styles.darkBackground]} edges={['left', 'right', 'bottom']}>
       <View style={styles.top}>
         {showBanner ? (
           <Image
@@ -357,6 +360,7 @@ export default function CardMatchScreen() {
           </View>
         </View>
       </Modal>
+      <AppFooterNav navigation={navigation} dark={dark} />
     </SafeAreaView>
   );
 }
@@ -407,6 +411,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#1e3a8a',
+  },
+  darkBackground: {
+    backgroundColor: DARK_BACKGROUND,
   },
   top: {
     paddingTop: 8,

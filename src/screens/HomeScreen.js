@@ -11,18 +11,21 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PokemonTitle from '../components/PokemonTitle';
+import AppFooterNav from '../components/AppFooterNav';
 import { useApp } from '../context/AppContext';
 import { MAX_CONTENT_WIDTH, actionButton, isWide } from '../styles/layout';
+import { DARK_BACKGROUND } from '../theme/palette';
 
 export default function HomeScreen({ navigation }) {
-  const { name, setName } = useApp();
+  const { name, setName, darkMode } = useApp();
+  const dark = Boolean(darkMode);
   const { width } = useWindowDimensions();
   const wide = isWide(width);
   const signedIn = Boolean(name.trim());
   const displayName = signedIn ? name.trim() : 'Trainer';
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={[styles.container, dark && styles.darkBackground]} edges={['bottom']}>
       <View style={styles.header}>
         <PokemonTitle style={styles.headerTitle}>thePokêApp</PokemonTitle>
         <TouchableOpacity
@@ -35,7 +38,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.settingsGear}>⚙</Text>
         </TouchableOpacity>
       </View>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, dark && styles.darkBackground]}>
         <Image
           accessibilityRole="image"
           accessibilityLabel="Pokédex Master banner"
@@ -91,6 +94,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
       </ScrollView>
+      <AppFooterNav navigation={navigation} dark={dark} />
     </SafeAreaView>
   );
 }
@@ -99,6 +103,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1e3a8a',
+  },
+  darkBackground: {
+    backgroundColor: DARK_BACKGROUND,
   },
   header: {
     backgroundColor: '#d32f2f',

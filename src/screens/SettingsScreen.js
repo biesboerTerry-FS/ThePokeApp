@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import WebImagePicker from '../components/WebImagePicker';
+import ThemeToggle from '../components/ThemeToggle';
+import AppFooterNav from '../components/AppFooterNav';
+import { DARK_BACKGROUND } from '../theme/palette';
 import { isCloudConfigured, uploadImage } from '../api/cloudinary';
 import { useApp } from '../context/AppContext';
 import { DIFFICULTIES } from '../game/cardMatch';
@@ -27,12 +30,13 @@ function initialsOf(name) {
   );
 }
 
-export default function SettingsScreen() {
+export default function SettingsScreen({ navigation }) {
   const {
     name,
     avatar,
     defaultDifficulty,
     stats,
+    darkMode,
     setName,
     setAvatar,
     setDefaultDifficulty,
@@ -40,6 +44,7 @@ export default function SettingsScreen() {
   } = useApp();
   const pickerRef = useRef(null);
   const [confirmReset, setConfirmReset] = useState(false);
+  const dark = Boolean(darkMode);
 
   function handleResetStats() {
     // Alert.alert is a no-op on the web build, so use an inline two-step
@@ -53,7 +58,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.screen} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.screen, dark && styles.darkBackground]} edges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.card}>
           <View style={styles.profileRow}>
@@ -144,6 +149,14 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.card}>
+          <Text style={styles.cardTitle}>Appearance</Text>
+          <Text style={styles.muted}>Choose a dark or classic Pokédex background. Saved on this device.</Text>
+          <View style={styles.avatarActions}>
+            <ThemeToggle />
+          </View>
+        </View>
+
+        <View style={styles.card}>
           <Text style={styles.cardTitle}>Card Match stats</Text>
           <View style={styles.tableHeader}>
             <Text style={[styles.cell, styles.cellLabel, styles.headerText]}>Level</Text>
@@ -177,6 +190,7 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
+      <AppFooterNav navigation={navigation} dark={dark} />
     </SafeAreaView>
   );
 }
@@ -185,6 +199,9 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#1e3a8a',
+  },
+  darkBackground: {
+    backgroundColor: DARK_BACKGROUND,
   },
   content: {
     padding: 14,

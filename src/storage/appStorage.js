@@ -6,6 +6,8 @@ export const defaultState = {
   name: '',
   avatar: '',
   defaultDifficulty: 'medium',
+  // Persisted appearance preference (light = classic Pokédex blue, dark = near-black).
+  darkMode: false,
   stats: {},
   // Locally added Pokédex entries (including user photos). When the backend is
   // healthy these are also written to MongoDB via the existing API; this local
