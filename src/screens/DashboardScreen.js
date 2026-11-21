@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -15,6 +15,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import PokemonTitle from '../components/PokemonTitle';
 import { getPokemonList } from '../api/client';
+import { useApp } from '../context/AppContext';
+import { mergeCustomPokemon } from '../utils/pokemon';
 import { getTypeStyle } from '../utils/typeStyles';
 import common from '../styles/common';
 import { isWide } from '../styles/layout';
@@ -22,10 +24,13 @@ import { isWide } from '../styles/layout';
 const ROWS_PER_PAGE = 15;
 
 export default function DashboardScreen({ navigation }) {
+  const { userPhotos } = useApp();
   const [pokemon, setPokemon] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const searchRef = useRef(null);
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const columns = width >= 1200 ? 5 : width >= 900 ? 4 : width >= 600 ? 3 : 2;
@@ -57,12 +62,19 @@ export default function DashboardScreen({ navigation }) {
     }, [loadPokemon])
   );
 
+  // Locally added photos/entries are merged into the cloud-backed list so they
+  // appear in the Pokédex immediately, even while the backend is unreachable.
+  const allPokemon = useMemo(
+    () => mergeCustomPokemon(pokemon, userPhotos),
+    [pokemon, userPhotos]
+  );
+
   const filteredPokemon = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return pokemon.filter((item) =>
+    return allPokemon.filter((item) =>
       String(item.name || '').toLowerCase().includes(term)
     );
-  }, [pokemon, searchTerm]);
+  }, [allPokemon, searchTerm]);
 
   const totalPages = Math.max(
     1,
@@ -147,18 +159,50 @@ export default function DashboardScreen({ navigation }) {
           <Text style={styles.backText}>‹</Text>
         </TouchableOpacity>
         {isWide(width) ? <PokemonTitle style={styles.headerTitle}>Pokédex</PokemonTitle> : null}
-        <TextInput accessibilityLabel="Search Pokémon"
-          style={styles.headerSearch}
-          value={searchTerm}
-          onChangeText={(value) => {
-            setSearchTerm(value);
-            setCurrentPage(1);
-          }}
-          placeholder="Search Pokémon..."
-          placeholderTextColor="#64748b"
-          autoCorrect={false}
-          returnKeyType="search"
-        />
+        {searchOpen ? (
+          <View style={styles.searchWrap}>
+            <TextInput
+              ref={searchRef}
+              autoFocus
+              accessibilityLabel="Search Pokémon"
+              style={styles.headerSearch}
+              value={searchTerm}
+              onChangeText={(value) => {
+                setSearchTerm(value);
+                setCurrentPage(1);
+              }}
+              onBlur={() => setSearchOpen(false)}
+              placeholder="Search Pokémon..."
+              placeholderTextColor="#64748b"
+              autoCorrect={false}
+              returnKeyType="search"
+            />
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
+              onPress={() => {
+                setSearchTerm('');
+                setCurrentPage(1);
+                setSearchOpen(false);
+                searchRef.current?.blur?.();
+              }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              style={styles.searchClear}
+            >
+              <Text style={styles.searchClearText}>×</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Open search"
+            onPress={() => setSearchOpen(true)}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={styles.searchIconButton}
+          >
+            <Text style={styles.searchIcon}>🔍</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a Pokémon"
           onPress={() => navigation.navigate('AddPokemon')}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -184,7 +228,7 @@ export default function DashboardScreen({ navigation }) {
           ) : (
             <View style={[common.subtleCard, { marginTop: 8 }]}>
               <Text style={common.subtitle}>
-                {pokemon.length === 0
+                {allPokemon.length === 0
                   ? 'No Pokémon found. Check your connection and try again.'
                   : 'No results match your search.'}
               </Text>
@@ -283,6 +327,35 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     color: '#1f2937',
     fontSize: 15,
+  },
+  searchWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  searchClear: {
+    paddingHorizontal: 6,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  searchClearText: {
+    color: '#ffffff',
+    fontSize: 24,
+    fontWeight: '900',
+    lineHeight: 26,
+  },
+  searchIconButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchIcon: {
+    fontSize: 18,
+    lineHeight: 22,
   },
   addButton: {
     paddingHorizontal: 4,

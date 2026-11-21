@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   Alert,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,6 +10,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import WebImagePicker from '../components/WebImagePicker';
+import { isCloudConfigured, uploadImage } from '../api/cloudinary';
 import { useApp } from '../context/AppContext';
 import { DIFFICULTIES } from '../game/cardMatch';
 import { winRate } from '../game/stats';
@@ -28,12 +31,15 @@ function initialsOf(name) {
 export default function SettingsScreen() {
   const {
     name,
+    avatar,
     defaultDifficulty,
     stats,
     setName,
+    setAvatar,
     setDefaultDifficulty,
     resetStats,
   } = useApp();
+  const pickerRef = useRef(null);
 
   function handleResetStats() {
     Alert.alert('Reset stats', 'Clear all Card Match results on this device?', [
@@ -47,9 +53,18 @@ export default function SettingsScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.card}>
           <View style={styles.profileRow}>
-            <View style={[styles.avatar, styles.avatarFallback]}>
-              <Text style={styles.avatarText}>{initialsOf(name)}</Text>
-            </View>
+            {avatar ? (
+              <Image
+                accessibilityRole="image"
+                accessibilityLabel="Profile avatar"
+                source={{ uri: avatar }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={[styles.avatar, styles.avatarFallback]}>
+                <Text style={styles.avatarText}>{initialsOf(name)}</Text>
+              </View>
+            )}
             <View style={styles.profileText}>
               <Text style={styles.cardTitle}>{name.trim() || 'Trainer'}</Text>
               <Text style={styles.muted}>Local player profile</Text>
@@ -66,10 +81,45 @@ export default function SettingsScreen() {
             maxLength={24}
             autoCorrect={false}
           />
+
+          <Text style={styles.label}>Avatar</Text>
+          <View style={styles.avatarActions}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Update avatar"
+              onPress={() => pickerRef.current?.open()}
+              style={styles.avatarButton}
+            >
+              <Text style={styles.avatarButtonText}>
+                {avatar ? 'Change avatar' : 'Update avatar'}
+              </Text>
+            </Pressable>
+            {avatar ? (
+              <Pressable accessibilityRole="button" accessibilityLabel="Clear avatar"
+                onPress={() => setAvatar('')}
+                style={[styles.avatarButton, styles.avatarClearButton]}
+              >
+                <Text style={styles.avatarButtonText}>Clear</Text>
+              </Pressable>
+            ) : null}
+          </View>
+          <WebImagePicker
+            ref={pickerRef}
+            label="Update avatar"
+            onPick={async (file) => {
+              const result = await uploadImage(file);
+              if (result?.uri) {
+                setAvatar(result.uri);
+              }
+            }}
+          />
+          {isCloudConfigured() ? null : (
+            <Text style={styles.muted}>
+              Cloud storage is not configured yet — images are saved on this device.
+            </Text>
+          )}
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Default difficulty</Text>
+          <Text style={styles.cardTitle}>Difficulty</Text>
           <Text style={styles.muted}>Used when you open Card Match.</Text>
           <View style={styles.chipRow}>
             {DIFFICULTIES.map((item) => {
@@ -81,7 +131,7 @@ export default function SettingsScreen() {
                   style={[styles.chip, active && styles.chipActive]}
                 >
                   <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                    {item.label} · {item.pairs} · {item.maxStrikes} chances
+                    {item.label}
                   </Text>
                 </Pressable>
               );
@@ -170,6 +220,26 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 22,
     fontWeight: '900',
+  },
+  avatarActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 6,
+  },
+  avatarButton: {
+    minHeight: 40,
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    backgroundColor: '#1e3a8a',
+  },
+  avatarClearButton: {
+    backgroundColor: '#991b1b',
+  },
+  avatarButtonText: {
+    color: '#ffffff',
+    fontWeight: '800',
+    fontSize: 13,
   },
   profileText: {
     flex: 1,

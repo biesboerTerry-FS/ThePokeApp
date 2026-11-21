@@ -35,7 +35,13 @@ export function AppProvider({ children }) {
   const actions = useMemo(
     () => ({
       setName: (name) => update({ name }),
+      setAvatar: (uri) => update({ avatar: uri || '' }),
       setDefaultDifficulty: (key) => update({ defaultDifficulty: key }),
+      addUserPhoto: (entry) =>
+        setState((previous) => ({
+          ...previous,
+          userPhotos: [entry, ...(previous.userPhotos || [])],
+        })),
       recordGame: (difficultyKey, outcome, strikes) => {
         setState((previous) => ({
           ...previous,

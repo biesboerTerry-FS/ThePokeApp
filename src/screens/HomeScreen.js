@@ -18,7 +18,8 @@ export default function HomeScreen({ navigation }) {
   const { name, setName } = useApp();
   const { width } = useWindowDimensions();
   const wide = isWide(width);
-  const displayName = name.trim() || 'Trainer';
+  const signedIn = Boolean(name.trim());
+  const displayName = signedIn ? name.trim() : 'Trainer';
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -50,18 +51,22 @@ export default function HomeScreen({ navigation }) {
             Organize your collection, track levels, manage sprites, and play the interactive Card Match game.
           </Text>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Trainer name</Text>
-            <TextInput accessibilityLabel="Trainer name"
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="Enter your name"
-              placeholderTextColor="#64748b"
-              maxLength={24}
-              autoCorrect={false}
-            />
-          </View>
+          {/* Once a trainer name is set the user is "signed in" — no need to
+              ask for it again here. It stays editable in Settings. */}
+          {signedIn ? null : (
+            <View style={styles.field}>
+              <Text style={styles.label}>Trainer name</Text>
+              <TextInput accessibilityLabel="Trainer name"
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+                placeholder="Enter your name"
+                placeholderTextColor="#64748b"
+                maxLength={24}
+                autoCorrect={false}
+              />
+            </View>
+          )}
 
           <View style={[styles.actions, wide && styles.actionsWide]}>
             <TouchableOpacity

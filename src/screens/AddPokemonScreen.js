@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createPokemon } from '../api/client';
+import { useApp } from '../context/AppContext';
 import common from '../styles/common';
 import { MAX_CONTENT_WIDTH } from '../styles/layout';
 
@@ -30,6 +31,7 @@ const emptyPokemon = {
 };
 
 export default function AddPokemonScreen({ navigation }) {
+  const { userId } = useApp();
   const [newPokemon, setNewPokemon] = useState(emptyPokemon);
 
   const handleCreate = async () => {
@@ -46,6 +48,10 @@ export default function AddPokemonScreen({ navigation }) {
         .filter(Boolean),
       level: Number(newPokemon.level) || 1,
       sprite: newPokemon.sprite.trim(),
+      // Stable per-device trainer id used to key cloud entries. The current
+      // backend model does not have an owner field yet, so it is ignored by
+      // MongoDB until the schema is updated.
+      userId,
     };
 
     try {
