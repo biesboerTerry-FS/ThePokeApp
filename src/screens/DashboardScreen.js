@@ -124,7 +124,12 @@ export default function DashboardScreen({ navigation }) {
   const filteredPokemon = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return allPokemon.filter((item) => {
-      const matchesTerm = String(item.name || '').toLowerCase().includes(term);
+      // Search matches the name OR any of the Pokémon's types.
+      const matchesName = String(item.name || '').toLowerCase().includes(term);
+      const matchesTypeTerm = (item.types || []).some((type) =>
+        String(type).toLowerCase().trim().includes(term)
+      );
+      const matchesTerm = matchesName || matchesTypeTerm;
       if (!matchesTerm) return false;
       const matchesType =
         !typeFilter ||
@@ -235,7 +240,7 @@ export default function DashboardScreen({ navigation }) {
                 setCurrentPage(1);
               }}
               onBlur={() => setSearchOpen(false)}
-              placeholder="Search Pokémon..."
+              placeholder="Search name or type..."
               placeholderTextColor="#64748b"
               autoCorrect={false}
               returnKeyType="search"
