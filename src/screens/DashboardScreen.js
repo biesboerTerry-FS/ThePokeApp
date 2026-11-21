@@ -23,6 +23,27 @@ import { isWide } from '../styles/layout';
 
 const ROWS_PER_PAGE = 15;
 
+const TYPE_COLORS = {
+  normal: { backgroundColor: '#A8A77A', color: '#ffffff' },
+  fire: { backgroundColor: '#EE8130', color: '#ffffff' },
+  water: { backgroundColor: '#6390F0', color: '#ffffff' },
+  electric: { backgroundColor: '#F7D02C', color: '#1f2937' },
+  grass: { backgroundColor: '#7AC74C', color: '#1f2937' },
+  ice: { backgroundColor: '#96D9D6', color: '#1f2937' },
+  fighting: { backgroundColor: '#C22E28', color: '#ffffff' },
+  poison: { backgroundColor: '#A33EA1', color: '#ffffff' },
+  ground: { backgroundColor: '#E2BF65', color: '#1f2937' },
+  flying: { backgroundColor: '#A98FF3', color: '#1f2937' },
+  psychic: { backgroundColor: '#F95587', color: '#ffffff' },
+  bug: { backgroundColor: '#A6B91A', color: '#1f2937' },
+  rock: { backgroundColor: '#B6A136', color: '#ffffff' },
+  ghost: { backgroundColor: '#735797', color: '#ffffff' },
+  dragon: { backgroundColor: '#6F35FC', color: '#ffffff' },
+  dark: { backgroundColor: '#705746', color: '#ffffff' },
+  steel: { backgroundColor: '#B7B7CE', color: '#1f2937' },
+  fairy: { backgroundColor: '#D685AD', color: '#1f2937' },
+};
+
 export default function DashboardScreen({ navigation }) {
   const { userPhotos, caught, favorites, edits } = useApp();
   const [pokemon, setPokemon] = useState([]);
@@ -30,6 +51,7 @@ export default function DashboardScreen({ navigation }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [caughtOnly, setCaughtOnly] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [typeFilter, setTypeFilter] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const searchRef = useRef(null);
@@ -87,17 +109,34 @@ export default function DashboardScreen({ navigation }) {
     [favorites]
   );
 
+  // Build the type list from the roster so every filter is one that exists.
+  const availableTypes = useMemo(() => {
+    const set = new Set();
+    allPokemon.forEach((item) => {
+      (item.types || []).forEach((type) => {
+        if (type) set.add(String(type).toLowerCase().trim());
+      });
+    });
+    return ['all', ...Array.from(set).sort()];
+  }, [allPokemon]);
+
   const filteredPokemon = useMemo(() => {
     const term = searchTerm.toLowerCase();
     return allPokemon.filter((item) => {
       const matchesTerm = String(item.name || '').toLowerCase().includes(term);
       if (!matchesTerm) return false;
+      const matchesType =
+        !typeFilter ||
+        (item.types || []).some(
+          (type) => String(type).toLowerCase().trim() === typeFilter
+        );
+      if (!matchesType) return false;
       const key = String(item._id ?? item.id);
       if (caughtOnly && !caughtIds.has(key)) return false;
       if (favoritesOnly && !favoriteIds.has(key)) return false;
       return true;
     });
-  }, [allPokemon, searchTerm, caughtOnly, favoritesOnly, caughtIds, favoriteIds]);
+  }, [allPokemon, searchTerm, typeFilter, caughtOnly, favoritesOnly, caughtIds, favoriteIds]);
 
   const totalPages = Math.max(
     1,
@@ -248,6 +287,36 @@ export default function DashboardScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.typeFilterBar}
+        contentContainerStyle={styles.typeFilterContent}
+      >
+        {availableTypes.map((type) => {
+          const active = typeFilter === type || (type === 'all' && !typeFilter);
+          const style = TYPE_COLORS[type] || { backgroundColor: '#6b7280', color: '#ffffff' };
+          const isAll = type === 'all';
+          return (
+            <TouchableOpacity
+              key={type}
+              accessibilityRole="button"
+              accessibilityLabel={`Filter by ${isAll ? 'all types' : type}`}
+              accessibilityState={{ selected: active }}
+              onPress={() => { setTypeFilter(isAll ? '' : type); setCurrentPage(1); }}
+              style={[
+                styles.typeChip,
+                { backgroundColor: style.backgroundColor },
+                active && styles.typeChipActive,
+              ]}
+            >
+              <Text style={[styles.typeChipText, { color: style.color }, active && styles.typeChipTextActive]}>
+                {isAll ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
       <FlatList
         key={columns}
         style={styles.list}
@@ -483,6 +552,41 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     fontSize: 14,
     lineHeight: 16,
+  },
+  typeFilterBar: {
+    backgroundColor: '#d32f2f',
+    borderBottomWidth: 2,
+    borderBottomColor: '#b71c1c',
+    maxHeight: 52,
+  },
+  typeFilterContent: {
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    gap: 6,
+  },
+  typeChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  typeChipActive: {
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  typeChipText: {
+    fontWeight: '900',
+    fontSize: 13,
+  },
+  typeChipTextActive: {
+    color: '#ffffff',
+    textShadowColor: '#00000088',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   caughtBadge: {
     position: 'absolute',

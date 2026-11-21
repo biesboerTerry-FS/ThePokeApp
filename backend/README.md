@@ -19,17 +19,25 @@ Health check: `GET /api/v1/health` returns 200 when the database is connected.
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| GET | `/pokemon` | – | List Pokémon |
+| GET | `/pokemon?userId=<id>` | – | List shared + this trainer's Pokémon |
 | GET | `/pokemon/:id` | – | One Pokémon |
-| POST | `/pokemon` | – | Add a Pokémon |
-| PATCH | `/pokemon/:id` | – | Update a Pokémon |
-| DELETE | `/pokemon/:id` | – | Release a Pokémon |
+| POST | `/pokemon` | – | Add a Pokémon (stores `ownerId` from body) |
+| PATCH | `/pokemon/:id` | – | Update a Pokémon (owner-only when `userId` supplied) |
+| DELETE | `/pokemon/:id` | – | Release a Pokémon (owner-only when `userId` supplied) |
+
+The app itself only uses `GET /pokemon` and `GET /pokemon/:id`; the write routes
+exist for completeness. Scoping relies on the client-supplied `userId` because the
+demo has no real sign-in.
 
 ## Database
 
 Set `MONGODB_URI` in `.env`. The local default is `mongodb://127.0.0.1:27017/pokedex`.
 For a hosted cluster, paste its connection string (include the database name).
 
-Collections: `pokemons`.
+Collections: `pokemons`. Entries with `ownerId: ''` are the shared 1025-species
+seed roster; entries with an `ownerId` belong to a trainer.
 
-The API still starts when the database is unreachable. Data routes return 503 until it connects.
+The API still starts when the database is unreachable. Data routes return 503 until
+it connects. On Vercel, MongoDB Atlas must allow serverless IPs (Network Access →
+`0.0.0.0/0`); otherwise health stays `degraded` and the frontend uses its bundled
+offline roster instead.
