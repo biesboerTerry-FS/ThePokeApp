@@ -1,6 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
-  Alert,
   Image,
   Pressable,
   ScrollView,
@@ -40,12 +39,17 @@ export default function SettingsScreen() {
     resetStats,
   } = useApp();
   const pickerRef = useRef(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   function handleResetStats() {
-    Alert.alert('Reset stats', 'Clear all Card Match results on this device?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Reset', style: 'destructive', onPress: resetStats },
-    ]);
+    // Alert.alert is a no-op on the web build, so use an inline two-step
+    // confirmation that works everywhere.
+    if (!confirmReset) {
+      setConfirmReset(true);
+      return;
+    }
+    resetStats();
+    setConfirmReset(false);
   }
 
   return (
@@ -160,8 +164,8 @@ export default function SettingsScreen() {
               </View>
             );
           })}
-          <Pressable accessibilityRole="button" accessibilityLabel="Reset Card Match stats" onPress={handleResetStats} style={styles.dangerButton}>
-            <Text style={styles.dangerText}>Reset stats</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="Reset Card Match stats" onPress={handleResetStats} style={[styles.dangerButton, confirmReset && styles.confirmResetButton]}>
+            <Text style={styles.dangerText}>{confirmReset ? 'Tap again to confirm' : 'Reset stats'}</Text>
           </Pressable>
         </View>
 
@@ -322,6 +326,9 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontWeight: '900',
+  },
+  confirmResetButton: {
+    backgroundColor: '#dc2626',
   },
   dangerButton: {
     alignSelf: 'flex-start',
