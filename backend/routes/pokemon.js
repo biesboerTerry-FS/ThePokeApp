@@ -14,6 +14,17 @@ function parseTypes(value) {
     .filter(Boolean);
 }
 
+// The client sends a stable trainer id (userId) from local storage. Entries
+// with an empty ownerId are global/shared seed data; entries with an ownerId
+// belong to that trainer. Auth is intentionally optional — this is a demo app
+// with no real sign-in, so scoping relies on the client-supplied id.
+function getOwner(request) {
+  const fromQuery = request.query && request.query.userId;
+  const fromHeader = request.headers['x-user-id'];
+  const fromBody = request.body && request.body.userId;
+  return String(fromQuery || fromHeader || fromBody || '').trim();
+}
+
 async function loadPokemon(request, response, next) {
   try {
     const pokemon = await Pokemon.findById(request.params.id);
@@ -29,8 +40,11 @@ async function loadPokemon(request, response, next) {
   }
 }
 
+// GET /pokemon?userId=<id> → shared entries + this trainer's entries.
 router.get('/', async (request, response) => {
-  const pokemon = await Pokemon.find().sort({ name: 1 }).lean();
+  const owner = getOwner(request);
+  const filter = owner ? { ownerId: { $in: ['', owner] } } : { ownerId: '' };
+  const pokemon = await Pokemon.find(filter).sort({ name: 1 }).lean();
   response.json(pokemon.map(withId));
 });
 
@@ -45,6 +59,7 @@ router.post('/', async (request, response) => {
       types: parseTypes(request.body.types),
       level: Number(request.body.level) || 1,
       sprite: request.body.sprite || '',
+      ownerId: getOwner(request),
     });
     response.status(201).json(withId(pokemon.toObject()));
   } catch (error) {
@@ -54,6 +69,13 @@ router.post('/', async (request, response) => {
 
 router.patch('/:id', loadPokemon, async (request, response) => {
   const pokemon = response.locals.pokemon;
+  const owner = getOwner(request);
+
+  // If this entry belongs to a trainer, only that trainer may modify it.
+  if (pokemon.ownerId && owner && pokemon.ownerId !== owner) {
+    return response.status(403).json({ message: 'Not your Pokémon.' });
+  }
+
   const { name, sprite, level, types } = request.body;
 
   if (name != null) pokemon.name = name;
@@ -70,7 +92,14 @@ router.patch('/:id', loadPokemon, async (request, response) => {
 });
 
 router.delete('/:id', loadPokemon, async (request, response) => {
-  await response.locals.pokemon.deleteOne();
+  const pokemon = response.locals.pokemon;
+  const owner = getOwner(request);
+
+  if (pokemon.ownerId && owner && pokemon.ownerId !== owner) {
+    return response.status(403).json({ message: 'Not your Pokémon.' });
+  }
+
+  await pokemon.deleteOne();
   response.json({ message: 'Deleted Pokémon.' });
 });
 

@@ -1,6 +1,20 @@
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import seedPokemon from '../data/pokemonSeed.json';
 import { backendHealthyAtBuild } from './backendStatus.generated';
+
+// The client stores a stable trainer id in the persisted app state. Read it
+// so the API can scope Pokédex entries to this trainer (plus shared seed data).
+async function getUserId() {
+  try {
+    const raw = await AsyncStorage.getItem('pokeapp:state:v1');
+    if (!raw) return '';
+    const parsed = JSON.parse(raw);
+    return String(parsed.userId || '').trim();
+  } catch (error) {
+    return '';
+  }
+}
 
 function normalizeBaseUrl(value) {
   return String(value || '').replace(/\/+$/, '');
@@ -168,8 +182,10 @@ function handleLocalFallback(path, options) {
   throw new Error(`Unsupported request: ${method} ${path}`);
 }
 
-export function getPokemonList() {
-  return requestJson('/pokemon');
+export async function getPokemonList() {
+  const userId = await getUserId();
+  const query = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+  return requestJson(`/pokemon${query}`);
 }
 
 export function getPokemonById(id) {

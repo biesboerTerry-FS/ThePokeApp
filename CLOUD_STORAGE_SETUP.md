@@ -50,13 +50,29 @@ frontend** and the probe will enable the cloud/Mongo path automatically.
 ### User identifier
 
 A stable `userId` (`trainer-<uuid>`) is generated once and stored in
-`pokeapp:state:v1`. It is included in every `createPokemon` call and on local
-photo entries. **The current backend `Pokemon` model has no owner/user field**,
-so MongoDB does not persist or filter by it yet. To truly scope collections per
-account, add a `userId` field to `backend/models/Pokemon.js` and filter
-`GET /pokemon` by it — that backend change was intentionally left out of this
-frontend pass. Until then the demo keeps seed data shared and uses the trainer
-id only as a local key.
+`pokeapp:state:v1`. It is sent with every request via the `userId` query/body
+parameter.
+
+The backend now persists and scopes by trainer:
+- `backend/models/Pokemon.js` has an `ownerId` field (indexed). Entries with an
+  empty `ownerId` are the shared 1025-species seed roster; entries with an
+  `ownerId` belong to that trainer.
+- `GET /pokemon?userId=<id>` returns shared seed entries plus that trainer's
+  own entries. `POST /pokemon` stores `ownerId` from the request. `PATCH` /
+  `DELETE` reject modifications to another trainer's entries when a `userId`
+  is supplied.
+- The demo has no real sign-in, so scoping relies on the client-supplied id
+  rather than a JWT. Authenticated routes are intentionally not required for
+  the Pokédex endpoints.
+
+MongoDB Atlas must allow connections from Vercel's serverless IPs. Add
+`0.0.0.0/0` to the cluster's Network Access allowlist (Atlas → Network Access
+→ Add IP Address → Allow Access from Anywhere) or add Vercel's static IP ranges.
+The connection string used by the backend is `MONGODB_URI` (the server also
+accepts the legacy `MONGO_URI` name) and must include the database name, e.g.
+`mongodb+srv://…/pokedex`.
+
+Seed the shared roster with `cd backend && npm run seed` (1025 entries).
 
 ## Storage paths at a glance
 

@@ -6,7 +6,7 @@ const pokemonRouter = require('./routes/pokemon');
 const { demoLogin, requireAuth } = require('./routes/auth');
 
 const PORT = process.env.PORT || 8000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/pokedex';
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/pokedex';
 
 const app = express();
 app.use(cors());
@@ -30,7 +30,9 @@ app.use('/api/v1', (request, response, next) => {
   response.status(503).json({ message: 'Database not connected yet.' });
 });
 
-app.use('/api/v1/pokemon', requireAuth, pokemonRouter);
+// Pokemon routes are scoped by a client-supplied userId rather than a JWT —
+// this demo has no real sign-in. Entries with no ownerId are shared seed data.
+app.use('/api/v1/pokemon', pokemonRouter);
 
 app.use((error, request, response, next) => {
   console.error(error);

@@ -200,7 +200,8 @@ export default function DashboardScreen({ navigation }) {
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             style={styles.searchIconButton}
           >
-            <Text style={styles.searchIcon}>🔍</Text>
+            <View style={styles.magnifierRing} />
+            <View style={styles.magnifierHandle} />
           </TouchableOpacity>
         )}
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add a Pokémon"
@@ -349,20 +350,42 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#d32f2f',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  searchIcon: {
-    fontSize: 18,
-    lineHeight: 22,
+  magnifierRing: {
+    position: 'absolute',
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    top: 11,
+    left: 12,
+  },
+  magnifierHandle: {
+    position: 'absolute',
+    width: 9,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: '#ffffff',
+    top: 26,
+    left: 26,
+    transform: [{ rotate: '45deg' }],
   },
   addButton: {
-    paddingHorizontal: 4,
+    marginLeft: 'auto',
+    backgroundColor: '#ffffff',
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addText: {
-    color: '#ffffff',
-    fontSize: 16,
+    color: '#d32f2f',
+    fontSize: 15,
     fontWeight: '900',
   },
   screen: {
