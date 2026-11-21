@@ -213,6 +213,8 @@ const styles = StyleSheet.create({
   action: {
     ...actionButton,
     width: '100%',
+    maxWidth: 280,
+    alignSelf: 'center',
   },
   primaryAction: {
     backgroundColor: '#d32f2f',
