@@ -1,6 +1,13 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+// A real secret is mandatory in production; the fallback exists only so the
+// demo can run locally before the developer sets one.
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production'
+  ? null
+  : 'dev-secret-change-in-production');
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET must be set in production.');
+}
 const DEMO_LOGIN = process.env.DEMO_LOGIN === 'true';
 
 function signDemoToken() {
