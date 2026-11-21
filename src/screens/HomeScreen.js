@@ -68,6 +68,9 @@ export default function HomeScreen({ navigation }) {
             </View>
           )}
 
+        </View>
+
+        <View style={[styles.actionsWrap, wide && styles.actionsWrapWide]}>
           <View style={[styles.actions, wide && styles.actionsWide]}>
             <TouchableOpacity
               accessibilityRole="button"
@@ -128,6 +131,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   content: {
+    flexGrow: 1,
     paddingBottom: 40,
     alignItems: 'center',
     backgroundColor: '#1e3a8a',
@@ -179,6 +183,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     color: '#333',
     fontSize: 16,
+  },
+  actionsWrap: {
+    width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
+    paddingHorizontal: 20,
+    marginTop: 'auto',
+    paddingTop: 24,
+  },
+  actionsWrapWide: {
+    marginTop: 24,
+    paddingTop: 0,
   },
   actions: {
     width: '100%',
